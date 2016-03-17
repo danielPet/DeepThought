@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/cc/cs61c/fa15/class/cs61c-aez/projects/proj5-aez-avf/run_pagerank.py", line 5, in <module>
+    from pagerank.simple_page_rank import SimplePageRank
+  File "/home/cc/cs61c/fa15/class/cs61c-aez/projects/proj5-aez-avf/pagerank/simple_page_rank.py", line 118
+    elif i in targets:
+       ^
+SyntaxError: invalid syntax

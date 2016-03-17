@@ -1,0 +1,125 @@
+Assignment
+
+(1) Run your code for both SimplePageRank and BackedgesPageRank 
+for 20 iterations on both Facebook dataset and the Enron 
+dataset, parititioned into chunks of 500, on clusters of size 
+5 and 10. How long do each of these 8 scenarios take?
+
+[dataset]:[method]:[instances] ... [time (minutes)]
+
+Facebook:Simple:5 ................ 33.11
+Facebook:Backedges:5 ............. 34.86
+Facebook:Simple:10 ............... 10.46
+Facebook:Backedges:10 ............ 11.27
+Enron:Simple:5 ................... 39.59
+Enron:Backedges:5 ................ 37.98
+Enron:Simple:10 .................. 11.25
+Enron:Backedges:10 ............... 11.35
+
+
+(2) When running SimplePageRank on the 10 instances with a 
+repartition count of 500, what was the ratio of size of the 
+input file to the runtime of your program for the Enron 
+dataset? How about the Facebook dataset? Does this match your 
+expectations?
+
+Enron: 150000 edges/11.25 minutes = 13333.33 edges/min
+Facebook: 88000 edges/10.46 minutes = 8413.00 edges/min
+
+This does not match our expectations, as we would naively 
+assume that the number of edges executed per minute for 
+each of these cases should be roughly the same as the number
+of machines used was constant.
+
+
+(3) What was the speedup for 10 instances relative to 5 
+instances for 20 iterations of BackedgesPageRank on the Enron 
+dataset with a repartition count of 500? What do you conclude 
+about how well Spark parallelizes your work? How does the 
+algorithm scale in regards to strong scaling? weak scaling?
+
+Speedup = (Enron:Backedges:5)/(Enron:Backedges:10) 
+	= 37.98/11.35 
+       ~= 3.35
+
+We can conclude that Spark parallelizes very efficiently (as 
+we would naively assume that doubling the number of instances 
+would speed up the execution by 2, rather than 3.35).
+
+The algorithm seems to scale quite well with regards to strong
+scaling, as we can see that when the total problem size 
+remains constant (the same Enron dataset), doubling the 
+number of processors provides a significant speedup.
+
+The algorithm seems to scale fairly well with regards to weak 
+scaling as well. This may be seen by comparing the algorithm's 
+execution time for the Enron dataset with 10 instances and that 
+which was found for the Facebook dataset (which is roughly half 
+the size of the Enron dataset) with 5 instances (half as many 
+machines) so that the problem size per processor remains 
+relatively constant:
+
+Speedup = (Facebook:Backedges:5)/(Enron:Backedges:10) 
+	= 34.86/11.35
+       ~= 3.07
+
+Because the solution time decreases by a factor of about 3 
+with a roughly equal problem size per processor, it seems 
+the algorithm scales well weakly as well.
+
+
+(4) In part 5, you tinkered with the repartition count. At what 
+repartition count was your code the fastest on average? Why do 
+you think it would go slower if you decreased the partition 
+count? Why do you think it would go slower if you increased 
+the partition count?
+
+The code was fastest on average with a partition count of 20 
+(with 10 being a close second). We think that decreasing the 
+partition count (below 10) will slow down the execution of the 
+code because fewer machines would be able to operate on the 
+data at any one time, so that much of the power of 
+parallelization would be lost. On the other hand, if we 
+increase the partition count, while more of the data would be 
+parallelized (so that more machines could work on the data at 
+one time), there would be large overheads to execute operations 
+with the data which would (and did) dramatically increase the 
+overall execution time.
+
+
+(5) How many dollars in EC2 credits did you use to complete 
+this project? Remember the price of single c1.medium machine 
+is $0.0161 per Hour, and a cluster with 10 slaves has 11 
+machines (the master counts as one).
+
+We will calculate this by totalling our program execution 
+times (with 5 and 10 insances) and include the additional 
+time we spent setting up the clusters and testing them out:
+
+Step 4: Running on 5 instances (6 machines).
+Total time = 33.11 + 34.86 + 39.59 + 37.98
+	   = 145.54 minutes
+	   = 2.5256 hours
+Cost_5 = 6 * 2.5256 hrs * 0.0161 $/hr = $0.24
+
+Step 5: Running on 10 instances (11 machines).
+Time with 500 partitions: 10.46 + 11.27 + 11.25 + 11.35 = 44.33
+Time with 1 partitions: 18.27 + 17.79 + 3.99 +3.79 = 43.84
+Time with 2 partitions: 7.81 + 7.33 + 1.80 + 1.81 = 18.75
+Time with 5 partitions: 2.23 + 2.18 + 0.79 + 0.82 = 6.02
+Time with 10 partitions: 0.99 + 0.99 + 0.53 + 0.62 = 3.13
+Time with 20 partitions: 0.78 + 0.84 + 0.53 + 0.55 = 2.7
+Time with 100 partitions: 1.37 + 1.33 + 1.19 + 1.21 = 5.1
+Total time = 44.33 + 43.84 + 18.75 + 6.02 + 2.13 + 2.7 + 5.1
+	   = 122.87 minutes
+	   = 2.0478 hours
+Cost_10 = 11 * 2.0478 hrs * 0.0161 $/hr = $0.36
+
+Additional time (setting up and testing, not including running):
+~= 5 hours on 5 instances
+~= 1.5 hours on 10 instances
+Additional cost = ((6 * 5 hrs) + (11 * 1.5 hrs)) * 0.0161 $/hr
+		= $0.75
+
+Final Cost = $0.24 + $0.36 + $0.75 = $1.35 (EC2 credits)
+
